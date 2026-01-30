@@ -11,13 +11,10 @@
       --bg2:#fffdf9;
       --ink:#1f2328;
       --muted:#667085;
-      --card: rgba(255,255,255,.78);
       --card-border: rgba(17,17,17,.10);
 
-      /* warm accents */
       --accent:#d97706;
       --accent2:#be123c;
-      --accent3:#0f766e;
 
       --shadow2: 0 10px 24px rgba(0,0,0,.08);
       --radius: 18px;
@@ -26,7 +23,6 @@
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
 
-    /* Base background (scroll-friendly) */
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -35,7 +31,7 @@
       position: relative;
     }
 
-    /* Decorative “glow” painted once (no harsh repeat on long pages) */
+    /* fixed decorative background (no harsh repeat) */
     body::before{
       content:"";
       position: fixed;
@@ -63,14 +59,13 @@
       text-align:center;
     }
 
-    /* SVG logo */
+    /* PNG logo */
     .logo{
-      max-width: 360px;
-      width: 80%;
+      width: min(360px, 80vw);
       height: auto;
+      display:block;
     }
 
-    /* Smaller, elegant heading */
     h1{
       margin:0;
       font-family: "Georgia", "Times New Roman", serif;
@@ -97,7 +92,6 @@
     .card h2{
       margin:0 0 6px;
       font-size: 1.1rem;
-      letter-spacing:-0.01em;
     }
 
     .row{
@@ -186,13 +180,6 @@
       border: 1px solid rgba(17,17,17,.10);
       background: rgba(255,255,255,.96);
       box-shadow: 0 10px 20px rgba(0,0,0,.08);
-      transform: translateY(0);
-      transition: transform .12s ease, box-shadow .18s ease;
-    }
-
-    .tile:hover{
-      transform: translateY(-2px);
-      box-shadow: 0 16px 34px rgba(0,0,0,.12);
     }
 
     .thumb{
@@ -214,10 +201,14 @@
 <body>
   <div class="wrap">
     <header>
-      <!-- Put reena-jacob.svg in the SAME folder as this HTML file -->
-      <img src="reena-jacob.svg" alt="Reena & Jacob" class="logo" />
+      <!-- PNG logo -->
+      <img src="reena-jacob.png" alt="Reena & Jacob" class="logo" />
+
       <h1>Upload wedding photos &amp; videos</h1>
-      <p class="small">No login needed. Please keep this link private (only share with wedding guests).</p>
+
+      <p class="small">
+        No login needed. Please keep this link private (only share with wedding guests).
+      </p>
     </header>
 
     <!-- Upload card -->
