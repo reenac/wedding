@@ -6,33 +6,92 @@
   <title>Wedding Uploads</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; max-width: 720px; }
-    h1 { margin: 0 0 8px; }
+    h1, h2 { margin: 0 0 8px; }
     p { margin: 0 0 16px; line-height: 1.4; }
-    h2 { margin: 0 0 8px; }
+
     .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 16px 0; }
     .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    input[type="text"] { padding: 10px 12px; border-radius: 10px; border: 1px solid #ccc; flex: 1; min-width: 220px; }
-    input[type="file"] { width: 100%; }
-    button { padding: 12px 14px; border: 0; border-radius: 10px; cursor: pointer; }
+
+    input[type="text"] {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    button {
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
     button.primary { background: #111; color: #fff; }
     button.secondary { background: #eee; }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
+
     .small { color: #555; font-size: 0.95rem; }
-    .progress { width: 100%; height: 12px; background: #eee; border-radius: 999px; overflow: hidden; margin-top: 10px; }
-    .bar { height: 100%; width: 0%; background: #111; transition: width 0.2s ease; }
-    .log { white-space: pre-wrap; background: #fafafa; border: 1px solid #eee; padding: 10px; border-radius: 10px; margin-top: 12px; font-size: 0.95rem; }
+
+    /* Upload progress */
+    .progress {
+      width: 100%;
+      height: 12px;
+      background: #eee;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: #111;
+      transition: width 0.2s ease;
+    }
+
+    .log {
+      white-space: pre-wrap;
+      background: #fafafa;
+      border: 1px solid #eee;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+
     .ok { color: #0a7; }
     .err { color: #c00; }
 
     /* Gallery */
-    .gallery-grid { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-    .tile { border: 1px solid #eee; border-radius: 12px; padding: 8px; background: #fff; }
-    .thumb { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; background: #f3f3f3; }
-    .tile-label { margin-top: 6px; word-break: break-word; }
-    .tile-actions { margin-top: 6px; display: flex; gap: 8px; }
-    .link-btn { font-size: 0.9rem; text-decoration: underline; background: transparent; padding: 0; border: 0; cursor: pointer; color: #111; }
+    .gallery-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .tile {
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f4f4f4;
+    }
+
+    .thumb {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      background: #ddd;
+      cursor: pointer;
+    }
+
+    video.thumb {
+      object-fit: cover;
+    }
   </style>
 </head>
+
 <body>
   <h1>Upload wedding photos & videos</h1>
   <p class="small">No login needed. Please keep this link private (only share with wedding guests).</p>
@@ -44,10 +103,11 @@
       <button id="pickBtn" class="secondary" type="button">Choose files</button>
       <button id="uploadBtn" class="primary" type="button" disabled>Upload</button>
     </div>
+
     <input id="fileInput" type="file" multiple accept="image/*,video/*" style="display:none" />
     <div class="small" id="fileSummary" style="margin-top:10px;">No files selected.</div>
 
-    <div class="progress" aria-label="Upload progress">
+    <div class="progress">
       <div class="bar" id="bar"></div>
     </div>
 
@@ -57,7 +117,7 @@
   <!-- Gallery card -->
   <div class="card">
     <h2>Gallery</h2>
-    <p class="small">Tap “Load gallery” to view recent uploads.</p>
+    <p class="small">Showing the <strong>50 most recent uploads</strong>.</p>
 
     <div class="row">
       <input id="galleryPass" type="text" placeholder="Gallery password (if set)" />
@@ -70,13 +130,8 @@
   </div>
 
 <script>
-  // Upload signed-URL function
   const SIGNED_URL_ENDPOINT = "https://us-west2-r-j-wedding.cloudfunctions.net/getSignedUploadUrl";
-
-  // Gallery listing function (deploy this separately as listGallery)
   const LIST_GALLERY_ENDPOINT = "https://us-west2-r-j-wedding.cloudfunctions.net/listGallery";
-
-  // Folder-like prefix inside your bucket
   const UPLOAD_PREFIX = "wedding-uploads";
 
   const fileInput = document.getElementById("fileInput");
@@ -87,7 +142,6 @@
   const bar = document.getElementById("bar");
   const logEl = document.getElementById("log");
 
-  // Gallery elements
   const galleryEl = document.getElementById("gallery");
   const galleryPassEl = document.getElementById("galleryPass");
   const loadGalleryBtn = document.getElementById("loadGalleryBtn");
@@ -102,10 +156,7 @@
   }
 
   function sanitizeName(s) {
-    return (s || "")
-      .trim()
-      .replace(/\s+/g, "_")
-      .replace(/[^a-zA-Z0-9_\-\.]/g, "");
+    return (s || "").trim().replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_\-\.]/g, "");
   }
 
   function humanBytes(bytes) {
@@ -115,212 +166,118 @@
     return `${b.toFixed(b >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
   }
 
-  pickBtn.addEventListener("click", () => fileInput.click());
+  pickBtn.onclick = () => fileInput.click();
 
-  fileInput.addEventListener("change", () => {
+  fileInput.onchange = () => {
     selectedFiles = Array.from(fileInput.files || []);
     if (!selectedFiles.length) {
       fileSummary.textContent = "No files selected.";
       uploadBtn.disabled = true;
       return;
     }
-    const totalBytes = selectedFiles.reduce((a,f) => a + f.size, 0);
-    fileSummary.textContent = `${selectedFiles.length} file(s) selected — ${humanBytes(totalBytes)} total.`;
+    const total = selectedFiles.reduce((a,f)=>a+f.size,0);
+    fileSummary.textContent = `${selectedFiles.length} file(s) selected — ${humanBytes(total)}`;
     uploadBtn.disabled = false;
     log("Ready to upload.");
-  });
+  };
 
-  async function getSignedUrl({ objectName, contentType }) {
-    const resp = await fetch(SIGNED_URL_ENDPOINT, {
+  async function getSignedUrl(payload) {
+    const r = await fetch(SIGNED_URL_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ objectName, contentType })
+      body: JSON.stringify(payload)
     });
-
-    if (!resp.ok) {
-      const t = await resp.text();
-      throw new Error(`Signed URL request failed (${resp.status}): ${t}`);
-    }
-    return await resp.json();
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
   }
 
-  uploadBtn.addEventListener("click", async () => {
-    if (!selectedFiles.length) return;
-
+  uploadBtn.onclick = async () => {
     uploadBtn.disabled = true;
     pickBtn.disabled = true;
     bar.style.width = "0%";
 
     const guest = sanitizeName(guestNameEl.value);
-    const time = new Date();
-    const yyyy = time.getFullYear();
-    const mm = String(time.getMonth()+1).padStart(2,"0");
-    const dd = String(time.getDate()).padStart(2,"0");
-    const datePrefix = `${yyyy}-${mm}-${dd}`;
+    const d = new Date();
+    const datePrefix = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 
     try {
-      let completed = 0;
-      const total = selectedFiles.length;
-
+      let done = 0;
       for (const file of selectedFiles) {
-        const safeFile = sanitizeName(file.name) || `file_${Date.now()}`;
-        const rand = Math.random().toString(16).slice(2);
-        const objectName =
-          `${UPLOAD_PREFIX}/${datePrefix}/` +
-          (guest ? `${guest}/` : "") +
-          `${Date.now()}_${rand}_${safeFile}`;
+        const safe = sanitizeName(file.name);
+        const key = `${UPLOAD_PREFIX}/${datePrefix}/${guest ? guest + "/" : ""}${Date.now()}_${Math.random().toString(16).slice(2)}_${safe}`;
 
-        log(`Requesting upload slot for:\n${file.name}\n(${humanBytes(file.size)})`);
+        const { uploadUrl } = await getSignedUrl({ objectName: key, contentType: file.type });
+        await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
 
-        const { uploadUrl } = await getSignedUrl({
-          objectName,
-          contentType: file.type || "application/octet-stream"
-        });
-
-        let lastPct = 0;
-        await new Promise((res, rej) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open("PUT", uploadUrl, true);
-          xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
-
-          xhr.upload.onprogress = (e) => {
-            if (!e.lengthComputable) return;
-            const pct = Math.floor((e.loaded / e.total) * 100);
-            if (pct !== lastPct) {
-              lastPct = pct;
-              const overall = ((completed + (e.loaded / e.total)) / total) * 100;
-              bar.style.width = `${overall.toFixed(1)}%`;
-              log(`Uploading ${file.name}\n${pct}%`);
-            }
-          };
-
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) res();
-            else rej(new Error(`Upload failed (${xhr.status}): ${xhr.responseText || xhr.statusText}`));
-          };
-          xhr.onerror = () => rej(new Error("Network error during upload."));
-          xhr.send(file);
-        });
-
-        completed += 1;
-        bar.style.width = `${(completed / total * 100).toFixed(1)}%`;
-        log(`Uploaded ${completed}/${total}: ${file.name}`, "ok");
+        done++;
+        bar.style.width = `${(done / selectedFiles.length) * 100}%`;
       }
 
       log("All uploads complete. Thank you! 💛", "ok");
-
-      // reset uploader
       fileInput.value = "";
       selectedFiles = [];
       fileSummary.textContent = "No files selected.";
 
-      // optional: refresh gallery after upload
-      if (!refreshGalleryBtn.disabled) {
-        await loadGallery(true);
-      }
-    } catch (err) {
-      console.error(err);
-      log(`Something went wrong:\n${err.message}\n\nPlease try again (or switch to Wi-Fi).`, "err");
+      if (!refreshGalleryBtn.disabled) loadGallery(true);
+    } catch (e) {
+      log(`Something went wrong:\n${e.message}`, "err");
     } finally {
-      uploadBtn.disabled = true;
       pickBtn.disabled = false;
-      bar.style.width = bar.style.width || "0%";
+      uploadBtn.disabled = true;
     }
-  });
-
-  // -------------------------
-  // Gallery
-  // -------------------------
-  function clearGallery() {
-    galleryEl.innerHTML = "";
-  }
-
-  function setGalleryStatus(text) {
-    galleryStatusEl.textContent = text;
-  }
+  };
 
   function makeTile(item) {
-    const wrap = document.createElement("div");
-    wrap.className = "tile";
+    const t = document.createElement("div");
+    t.className = "tile";
 
-    const filename = item.name.split("/").slice(-1)[0];
-
-    if (item.contentType && item.contentType.startsWith("image/")) {
+    if (item.contentType.startsWith("image/")) {
       const img = document.createElement("img");
       img.className = "thumb";
       img.src = item.url;
-      img.loading = "lazy";
-      img.alt = filename;
-      img.title = "Tap to open";
-      img.onclick = () => window.open(item.url, "_blank", "noopener");
-      wrap.appendChild(img);
+      img.onclick = () => window.open(item.url, "_blank");
+      t.appendChild(img);
     } else {
-      const vid = document.createElement("video");
-      vid.className = "thumb";
-      vid.src = item.url;
-      vid.controls = true;
-      vid.preload = "metadata";
-      wrap.appendChild(vid);
+      const v = document.createElement("video");
+      v.className = "thumb";
+      v.src = item.url;
+      v.controls = true;
+      v.preload = "metadata";
+      t.appendChild(v);
     }
-
-    const label = document.createElement("div");
-    label.className = "small tile-label";
-    label.textContent = filename;
-    wrap.appendChild(label);
-
-    const actions = document.createElement("div");
-    actions.className = "tile-actions";
-
-    const openBtn = document.createElement("button");
-    openBtn.className = "link-btn";
-    openBtn.type = "button";
-    openBtn.textContent = "Open";
-    openBtn.onclick = () => window.open(item.url, "_blank", "noopener");
-    actions.appendChild(openBtn);
-
-    wrap.appendChild(actions);
-    return wrap;
+    return t;
   }
 
-  async function loadGallery(isRefresh=false) {
-    clearGallery();
-    setGalleryStatus(isRefresh ? "Refreshing…" : "Loading…");
+  async function loadGallery(refresh=false) {
+    galleryEl.innerHTML = "";
+    galleryStatusEl.textContent = refresh ? "Refreshing…" : "Loading…";
 
     try {
-      const resp = await fetch(LIST_GALLERY_ENDPOINT, {
+      const r = await fetch(LIST_GALLERY_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: galleryPassEl.value || "" })
       });
 
-      if (!resp.ok) {
-        const t = await resp.text();
-        throw new Error(`Gallery request failed (${resp.status}): ${t}`);
-      }
-
-      const data = await resp.json();
-      const items = data.items || [];
+      if (!r.ok) throw new Error(await r.text());
+      const { items } = await r.json();
 
       if (!items.length) {
-        setGalleryStatus("No uploads found yet.");
+        galleryStatusEl.textContent = "No uploads yet.";
         return;
       }
 
-      setGalleryStatus(`Showing ${items.length} item(s). (Signed links expire after ~15 minutes.)`);
-      for (const item of items) {
-        galleryEl.appendChild(makeTile(item));
-      }
-
+      galleryStatusEl.textContent = `Showing ${items.length} most recent uploads.`;
+      items.forEach(i => galleryEl.appendChild(makeTile(i)));
       refreshGalleryBtn.disabled = false;
     } catch (e) {
-      console.error(e);
-      setGalleryStatus(`Error loading gallery: ${e.message}`);
+      galleryStatusEl.textContent = `Error loading gallery: ${e.message}`;
       refreshGalleryBtn.disabled = true;
     }
   }
 
-  loadGalleryBtn.addEventListener("click", () => loadGallery(false));
-  refreshGalleryBtn.addEventListener("click", () => loadGallery(true));
+  loadGalleryBtn.onclick = () => loadGallery(false);
+  refreshGalleryBtn.onclick = () => loadGallery(true);
 </script>
 </body>
 </html>
